@@ -43,7 +43,7 @@
     const controls = new OrbitControls(camera, renderer.domElement)
 	  
     var oLoader = new THREE.OBJMTLLoader();
-    oLoader.load('models/Living.obj', 'models/Living.mtl', function(object) {
+    oLoader.load('dog.obj', 'dog.mtl', function(object) {
       dog = object;
       object.scale.set(10, 10, 10);
       scene.add(object);
