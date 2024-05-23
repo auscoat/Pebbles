@@ -21,9 +21,9 @@
   
   <script type="module">
     import * as THREE from 'three'
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
-
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js
+    import { MTLLoader } from 'three/addons/loaders/MTLLoader.js'
+	  
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(
       75,
@@ -41,13 +41,13 @@
     document.body.appendChild(renderer.domElement)
   
     const controls = new OrbitControls(camera, renderer.domElement)
-
-    const loader = new GLTFLoader()
-    loader.load( 'Dog.gltf', function ( gltf ) {
-	    scene.add( gltf.scene )
-    }, undefined, function ( error ) {
-        console.error( error )
-    } );
+	  
+    var oLoader = new THREE.OBJMTLLoader();
+    oLoader.load('models/Living.obj', 'models/Living.mtl', function(object) {
+      dog = object;
+      object.scale.set(10, 10, 10);
+      scene.add(object);
+    });
       
     class Box extends THREE.Mesh {
         constructor({
