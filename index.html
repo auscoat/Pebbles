@@ -44,7 +44,8 @@
 	  
     const loader = new GLTFLoader();
     const gltf = await. loader.loadAsync('assets/dog.gltf')
-    scene.add(gltf.scene)
+    dog = gltf.scene
+    scene.add(dog)
       
     class Box extends THREE.Mesh {
         constructor({
