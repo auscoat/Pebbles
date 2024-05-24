@@ -74,6 +74,16 @@
         this.velocity.y += this.gravity;
         this.position.y += this.velocity.y;
       }
+
+      checkCollision(ground) {
+        const objectBox = new THREE.Box3().setFromObject(this);
+        const groundBox = new THREE.Box3().setFromObject(ground);
+
+        if (objectBox.intersectsBox(groundBox)) {
+          this.velocity.y = 0;
+          this.position.y = ground.position.y + ground.height / 2 + this.height / 2;
+        }
+      }
     }
 
     class ObjectWithGravity {
@@ -101,12 +111,12 @@
       }
 
       checkCollision(ground) {
-        const dogBox = new THREE.Box3().setFromObject(this.model);
+        const objectBox = new THREE.Box3().setFromObject(this.model);
         const groundBox = new THREE.Box3().setFromObject(ground);
 
-        if (dogBox.intersectsBox(groundBox)) {
+        if (objectBox.intersectsBox(groundBox)) {
           this.velocity.y = 0;
-          this.model.position.y = ground.position.y + ground.height / 2 + (dogBox.max.y - dogBox.min.y) / 2;
+          this.model.position.y = ground.position.y + ground.height / 2 + (objectBox.max.y - objectBox.min.y) / 2;
           this.onGround = true;
         } else {
           this.onGround = false;
@@ -115,10 +125,71 @@
     }
 
     const loader = new GLTFLoader();
-    const gltf = await loader.loadAsync('assets/dog.gltf');
-    const dog = new ObjectWithGravity(gltf.scene, { x: 0, y: -0.01, z: 0 });
+    loader.load(
+      'assets/dog.gltf',
+      (gltf) => {
+        const dog = new ObjectWithGravity(gltf.scene, { x: 0, y: -0.01, z: 0 });
+        scene.add(dog.model);
 
-    scene.add(dog.model);
+        const animate = () => {
+          requestAnimationFrame(animate);
+          renderer.render(scene, camera);
+
+          cube.velocity.x = 0;
+          if (keys.a.pressed) {
+            cube.velocity.x = -0.02;
+          } else if (keys.d.pressed) {
+            cube.velocity.x = 0.02;
+          }
+
+          cube.velocity.z = 0;
+          if (keys.w.pressed) {
+            cube.velocity.z = -0.02;
+          } else if (keys.s.pressed) {
+            cube.velocity.z = 0.02;
+          }
+
+          dog.velocity.x = 0;
+          if (keys.a.pressed) {
+            dog.velocity.x = -0.02;
+          } else if (keys.d.pressed) {
+            dog.velocity.x = 0.02;
+          }
+
+          dog.velocity.z = 0;
+          if (keys.w.pressed) {
+            dog.velocity.z = -0.02;
+          } else if (keys.s.pressed) {
+            dog.velocity.z = 0.02;
+          }
+
+          cube.update();
+          cube.checkCollision(ground);
+
+          dog.update(ground);
+
+          // Remove old BoxHelpers
+          for (const helper of helpers) {
+            scene.remove(helper);
+          }
+
+          // Update the BoxHelpers
+          helpers.length = 0;
+          helpers.push(new THREE.BoxHelper(cube, 0xffff00));
+          helpers.push(new THREE.BoxHelper(ground, 0x00ff00));
+          helpers.push(new THREE.BoxHelper(dog.model, 0xff0000));
+
+          for (const helper of helpers) {
+            scene.add(helper);
+          }
+        };
+        animate();
+      },
+      undefined,
+      (error) => {
+        console.error('An error occurred while loading the model:', error);
+      }
+    );
 
     const cube = new Box({
       width: 1,
@@ -188,62 +259,8 @@
       }
     });
 
-    function animate() {
-      requestAnimationFrame(animate);
-      renderer.render(scene, camera);
-
-      cube.velocity.x = 0;
-      if (keys.a.pressed) {
-        cube.velocity.x = -0.02;
-      } else if (keys.d.pressed) {
-        cube.velocity.x = 0.02;
-      }
-
-      cube.velocity.z = 0;
-      if (keys.w.pressed) {
-        cube.velocity.z = -0.02;
-      } else if (keys.s.pressed) {
-        cube.velocity.z = 0.02;
-      }
-
-      dog.velocity.x = 0;
-      if (keys.a.pressed) {
-        dog.velocity.x = -0.02;
-      } else if (keys.d.pressed) {
-        dog.velocity.x = 0.02;
-      }
-
-      dog.velocity.z = 0;
-      if (keys.w.pressed) {
-        dog.velocity.z = -0.02;
-      } else if (keys.s.pressed) {
-        dog.velocity.z = 0.02;
-      }
-
-      cube.update();
-      dog.update(ground);
-
-      // Remove old BoxHelpers
-      scene.children = scene.children.filter(child => !(child instanceof THREE.BoxHelper));
-
-      // Update the BoxHelpers
-      const cubeHelper = new THREE.BoxHelper(cube, 0xffff00);
-      const groundHelper = new THREE.BoxHelper(ground, 0x00ff00);
-      const dogHelper = new THREE.BoxHelper(dog.model, 0xff0000);
-      scene.add(cubeHelper);
-      scene.add(groundHelper);
-      scene.add(dogHelper);
-
-      // Collision detection for cube
-      const cubeBox = new THREE.Box3().setFromObject(cube);
-      const groundBox = new THREE.Box3().setFromObject(ground);
-
-      if (cubeBox.intersectsBox(groundBox)) {
-        cube.velocity.y = 0;
-        cube.position.y = ground.position.y + ground.height / 2 + cube.height / 2;
-      }
-    }
-    animate();
+    const helpers = [];
   </script>
 </body>
 </html>
+
