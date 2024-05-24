@@ -43,11 +43,8 @@
     const controls = new OrbitControls(camera, renderer.domElement)
 	  
     const loader = new GLTFLoader();
-    loader.load( 'assets/dog.gltf', function ( gltf ) {
-       scene.add( gltf.scene );
-    }, undefined, function ( error ) {
-	console.error( error );
-    } );
+    const gltf = await. loader.loadAsync('assets/dog.gltf')
+    scene.add(gltf.scene)
       
     class Box extends THREE.Mesh {
         constructor({
